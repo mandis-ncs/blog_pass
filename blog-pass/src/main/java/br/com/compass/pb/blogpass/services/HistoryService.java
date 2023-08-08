@@ -1,4 +1,4 @@
 package br.com.compass.pb.blogpass.services;
 
-public class HistoryService {
+public interface HistoryService {
 }
