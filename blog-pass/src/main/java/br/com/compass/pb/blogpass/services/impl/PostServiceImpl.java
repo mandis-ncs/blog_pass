@@ -60,13 +60,39 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    private StatusHistory getMostRecentStatus(List<StatusHistory> historyList, Long postId) {
+        if (historyList.isEmpty()) {
+            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
+        }
+
+        log.info("percorrendo lista");
+        return historyList.get(historyList.size() - 1);
+    }
+
+
+
+    private void validatePostIdBetween1And100(Long postId) {
+        if (postId < 0 || postId > 100) {
+            throw new InvalidPostException("The post id should be between 0 and 100.");
+        }
+    }
+
+
+    private Optional<Post> findExistentPostById(Long postId) {
+        Optional<Post> postOptional = postRepository.findById(postId);
+        if (postOptional.isEmpty()) {
+            throw new ResourceNotFoundException("This post id does not exist: " + postId);
+        }
+        return postOptional;
+    }
+
+
     @Override
     @Transactional
     @Async
     public void processPost(Long postId) {
-        if (postId < 0 || postId > 100) {
-            throw new InvalidPostException("The post id should be between 0 and 100.");
-        }
+
+        validatePostIdBetween1And100(postId);
 
         if (postRepository.findById(postId).isPresent()) {
             throw new DuplicatedPostException("This post if id already exists: " + postId);
@@ -94,7 +120,6 @@ public class PostServiceImpl implements PostService {
 
         // status history FIND
         saveStatusHistory(PostStatus.POST_FIND, post);
-
         log.info("setting POST FIND history");
 
         post = postClient.getPostById(post.getId());
@@ -103,7 +128,6 @@ public class PostServiceImpl implements PostService {
 
             log.info("saving history FAILED");
             saveStatusHistory(PostStatus.FAILED, post);
-
             disablePost(post.getId());
             throw new ResourceNotFoundException("Post title or body is empty. Status: FAILED. Disabling post.");
         }
@@ -147,28 +171,19 @@ public class PostServiceImpl implements PostService {
     @Async
     public void reprocessPost(Long postId) {
 
-        if (postId < 0 || postId > 100) {
-            throw new InvalidPostException("The post id should be between 0 and 100.");
-        }
+        validatePostIdBetween1And100(postId);
 
-        Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            throw new ResourceNotFoundException("This post id does not exists: " + postId);
-        }
-
-        Post post = postOptional.get();
+        Post post = findExistentPostById(postId).get();
         List<StatusHistory> historyList = post.getHistory();
 
-        if (historyList.isEmpty()) {
-            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
-        }
-
-        log.info("percorrendo lista");
-        StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
+        StatusHistory mostRecentHistory = getMostRecentStatus(historyList, postId);
 
         if (mostRecentHistory.getStatus() != PostStatus.ENABLED && mostRecentHistory.getStatus() != PostStatus.DISABLED) {
             throw new InvalidPostException("Could not update post. The actual status is: " + mostRecentHistory);
         }
+
+        saveStatusHistory(PostStatus.UPDATING, post);
+
         Post postPopulated = populatePostById(post);
         populateCommentByPostId(postPopulated);
 
@@ -179,24 +194,13 @@ public class PostServiceImpl implements PostService {
     @Async
     public void disablePost(Long postId) {
 
-        if (postId < 0 || postId > 100) {
-            throw new InvalidPostException("The post id should be between 0 and 100.");
-        }
+        validatePostIdBetween1And100(postId);
 
-        Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            throw new ResourceNotFoundException("This post id does not exists: " + postId);
-        }
+        Post post = findExistentPostById(postId).get();
 
-        Post post = postOptional.get();
         List<StatusHistory> historyList = post.getHistory();
 
-        if (historyList.isEmpty()) {
-            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
-        }
-
-        log.info("percorrendo lista");
-        StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
+        StatusHistory mostRecentHistory = getMostRecentStatus(historyList, postId);
 
         if (mostRecentHistory.getStatus() == PostStatus.ENABLED || mostRecentHistory.getStatus() == PostStatus.FAILED) {
             saveStatusHistory(PostStatus.DISABLED, post);
