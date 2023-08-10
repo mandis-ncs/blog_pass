@@ -12,6 +12,7 @@ import br.com.compass.pb.blogpass.repositories.CommentsRepository;
 import br.com.compass.pb.blogpass.repositories.HistoryRepository;
 import br.com.compass.pb.blogpass.repositories.PostRepository;
 import br.com.compass.pb.blogpass.services.PostService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -53,6 +55,14 @@ public class PostServiceImpl implements PostService {
     @Async
     public void processPost(Long postId) {
 
+        if (postId < 0 || postId > 100) {
+            throw new InvalidPostException("The post id should be between 0 and 100.");
+        }
+
+        if (postRepository.findById(postId).isPresent()) {
+            throw new DuplicatedPostException("This post if id already exists: " + postId);
+        }
+
         Post post = new Post();
         post.setId(postId);
 
@@ -61,13 +71,7 @@ public class PostServiceImpl implements PostService {
         StatusHistory createdPost  = new StatusHistory(LocalDateTime.now(), PostStatus.CREATED, post);
         arrayStatus.add(createdPost);
 
-        if (postId < 0 || postId > 100) {
-            throw new InvalidPostException("The post id should be between 0 and 100.");
-        }
 
-        if (postRepository.findById(postId).isPresent()) {
-            throw new DuplicatedPostException("This post if id already exists: " + postId);
-        }
 
         // status history FIND
         StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
@@ -130,10 +134,15 @@ public class PostServiceImpl implements PostService {
 
         StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
 
+        log.info("percorrendo lista");
         if (mostRecentHistory.getStatus() == PostStatus.ENABLED) {
             StatusHistory disableHistory = new StatusHistory(LocalDateTime.now(), PostStatus.DISABLED, post);
             historyList.add(disableHistory);
-            postRepository.save(post);
+
+            log.info("tentativa de salvar");
+            historyRepository.save(disableHistory);
+
+            log.info("post salvo");
         } else {
             throw new InvalidPostException("The actual status is not ENABLE, but: " + mostRecentHistory);
         }
