@@ -82,7 +82,10 @@ public class PostServiceImpl implements PostService {
 
         // JUST FOR TEST -> CALLING FindPostById Method
         log.info("calling POST FINDING history");
-        findPostById(post);
+        Post populatedPost = populatePostById(post);
+
+        log.info("calling populate COMMENTS");
+        populateCommentByPostId(populatedPost);
     }
 
     @Override
@@ -137,7 +140,7 @@ public class PostServiceImpl implements PostService {
         return posts;
     }
 
-    public Post findPostById(Post post) {
+    public Post populatePostById(Post post) {
 
         // status history FIND
         StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post);
@@ -149,38 +152,48 @@ public class PostServiceImpl implements PostService {
 
         if (post.getTitle().isEmpty() || post.getBody().isEmpty()) {
             log.info("saving history FAILED");
-            StatusHistory failedPost  = new StatusHistory(LocalDateTime.now(), PostStatus.FAILED, post); // CAN BE FAILED -> THEN DISABLE !!!
+            StatusHistory failedPost  = new StatusHistory(LocalDateTime.now(), PostStatus.FAILED, post);
             historyRepository.save(failedPost);
-            log.info("save history FAILED success");
+            disablePost(post.getId());
+            throw new ResourceNotFoundException("Post title or body is empty. Status: FAILED. Disabling post.");
         }
 
         StatusHistory findOkPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_OK, post);
         historyRepository.save(findOkPost);
-        log.info("saving history POST OK");
-
-        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
-        historyRepository.save(findingComment);
-        log.info("saving history COMMENTS_FIND");
 
         log.info("returning");
         return postRepository.save(post);
     }
-//
-//
-//    public Post findCommentByPostId(Post post) {
-//
-//        List<Comment> arrayComments =new ArrayList<>();
-//        List<Comment> fetchedComments = postClient.getCommentsByPostId(postId);
-//
-//        for (Comment fetchedComment : fetchedComments) {
-//            Comment comment = new Comment(fetchedComment.getBody(), post);
-//            arrayComments.add(comment);
-//        }
-//        post.setComments(arrayComments);
-//
-//        StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
-//        arrayStatus.add(findOkComments);
-//
-//        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post); //CAN BE DISABLE !!!
-//    }
+
+
+    public Post populateCommentByPostId(Post post) {
+
+        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post);
+        historyRepository.save(findingComment);
+        log.info("saving history COMMENTS_FIND");
+
+        List<Comment> arrayComments = new ArrayList<>();
+        List<Comment> fetchedComments = postClient.getCommentsByPostId(post.getId());
+
+        if (fetchedComments.isEmpty()) {
+            StatusHistory failedComment  = new StatusHistory(LocalDateTime.now(), PostStatus.FAILED, post);
+            historyRepository.save(failedComment);
+            disablePost(post.getId());
+            throw new ResourceNotFoundException("Comments are empty. Status: FAILED. Disabling post.");
+        }
+
+        for (Comment fetchedComment : fetchedComments) {
+            Comment comment = new Comment(fetchedComment.getBody(), post);
+            arrayComments.add(comment);
+        }
+        post.setComments(arrayComments);
+
+        StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
+        historyRepository.save(findOkComments);
+
+        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post);
+        historyRepository.save(enabledPost);
+
+        return postRepository.save(post);
+    }
 }
