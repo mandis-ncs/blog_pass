@@ -1,6 +1,7 @@
 package br.com.compass.pb.blogpass.controllers;
 
 import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
+import br.com.compass.pb.blogpass.entities.Post;
 import br.com.compass.pb.blogpass.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,25 +20,14 @@ public class PostController {
         this.postService = postService;
     }
 
-
-    @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> getPostById(@PathVariable Long postId) {
-        PostResponseDto post = postService.getPostById(postId);
-        return ResponseEntity.ok(post);
-    }
-
-
     @GetMapping
-    public ResponseEntity<List<PostResponseDto>> listAllPosts() {
-        List<PostResponseDto> posts = postService.getAllPostsFromExternalService();
-        return ResponseEntity.ok(posts);
+    public List<Post> getAllPosts() {
+        return postService.getAllPosts();
     }
-
 
     @PostMapping("/{postId}")
-    public ResponseEntity<String> processPost(@PathVariable Long postId) {
+    public void processPost(@PathVariable Long postId) {
         postService.processPost(postId);
-        return ResponseEntity.ok("Post processing initiated");
     }
 
 

@@ -1,11 +1,13 @@
 package br.com.compass.pb.blogpass.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -20,12 +22,20 @@ public class StatusHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Date date;
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime date;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private PostStatus status;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
 
+    public StatusHistory(LocalDateTime date, PostStatus status, Post post) {
+        this.date = date;
+        this.status = status;
+        this.post = post;
+    }
 }
