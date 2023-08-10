@@ -1,6 +1,7 @@
 package br.com.compass.pb.blogpass.services.impl;
 
 import br.com.compass.pb.blogpass.dto.PostClient;
+import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
 import br.com.compass.pb.blogpass.entities.PostStatus;
@@ -13,6 +14,8 @@ import br.com.compass.pb.blogpass.repositories.HistoryRepository;
 import br.com.compass.pb.blogpass.repositories.PostRepository;
 import br.com.compass.pb.blogpass.services.PostService;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,13 +34,15 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final HistoryRepository historyRepository;
     private final CommentsRepository commentsRepository;
+    private final ModelMapper modelMapper;
 
     public PostServiceImpl(PostClient postClient, PostRepository postRepository, HistoryRepository historyRepository,
-                           CommentsRepository commentsRepository) {
+                           CommentsRepository commentsRepository, ModelMapper modelMapper) {
         this.postClient = postClient;
         this.postRepository = postRepository;
         this.historyRepository = historyRepository;
         this.commentsRepository = commentsRepository;
+        this.modelMapper = modelMapper;
     }
 
 
@@ -46,12 +51,6 @@ public class PostServiceImpl implements PostService {
         return postClient.getPostById(postId);
     }
 
-
-    @Override
-    @Async
-    public List<Post> getAllPostsFromExternalService() {
-        return postClient.getAllPosts();
-    }
 
 
     private StatusHistory saveStatusHistory(PostStatus status, Post post) {
@@ -216,12 +215,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<Post> getAllPostsFromBD() {
+    public List<PostResponseDto> getAllPostsFromBD() {
         List<Post> posts = postRepository.findAll();
+
         if (posts.isEmpty()) {
             throw new ResourceNotFoundException("No posts were found!");
         }
-        return posts;
+
+        ModelMapper modelMapper = new ModelMapper();
+        List<PostResponseDto> responseDtoList = modelMapper.map(
+                posts, new TypeToken<List<PostResponseDto>>() {}.getType());
+
+        return responseDtoList;
     }
 
 }

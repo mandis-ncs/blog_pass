@@ -1,5 +1,6 @@
 package br.com.compass.pb.blogpass.services;
 
+import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
 import br.com.compass.pb.blogpass.entities.Post;
 
 import java.util.List;
@@ -7,8 +8,6 @@ import java.util.List;
 public interface PostService {
 
     Post getPostById(Long postId);
-
-    List<Post> getAllPostsFromExternalService();
 
     void processPost(Long postId);
 
@@ -18,5 +17,5 @@ public interface PostService {
 
     List<Post> returnAllPostsFromAPI();
 
-    List<Post> getAllPostsFromBD();
+    List<PostResponseDto> getAllPostsFromBD();
 }
