@@ -96,23 +96,22 @@ public class PostServiceImpl implements PostService {
     public Post populatePostById(Post post) {
 
         // status history FIND
-        StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post);
-        historyRepository.save(findingPost);
+        saveStatusHistory(PostStatus.POST_FIND, post);
 
         log.info("setting POST FIND history");
 
         post = postClient.getPostById(post.getId());
 
         if (post.getTitle().isEmpty() || post.getBody().isEmpty()) {
+
             log.info("saving history FAILED");
-            StatusHistory failedPost  = new StatusHistory(LocalDateTime.now(), PostStatus.FAILED, post);
-            historyRepository.save(failedPost);
+            saveStatusHistory(PostStatus.FAILED, post);
+
             disablePost(post.getId());
             throw new ResourceNotFoundException("Post title or body is empty. Status: FAILED. Disabling post.");
         }
 
-        StatusHistory findOkPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_OK, post);
-        historyRepository.save(findOkPost);
+        saveStatusHistory(PostStatus.POST_OK, post);
 
         log.info("returning");
         return postRepository.save(post);
@@ -121,16 +120,14 @@ public class PostServiceImpl implements PostService {
 
     public Post populateCommentByPostId(Post post) {
 
-        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post);
-        historyRepository.save(findingComment);
+        saveStatusHistory(PostStatus.COMMENTS_FIND, post);
         log.info("saving history COMMENTS_FIND");
 
         List<Comment> arrayComments = new ArrayList<>();
         List<Comment> fetchedComments = postClient.getCommentsByPostId(post.getId());
 
         if (fetchedComments.isEmpty()) {
-            StatusHistory failedComment  = new StatusHistory(LocalDateTime.now(), PostStatus.FAILED, post);
-            historyRepository.save(failedComment);
+            saveStatusHistory(PostStatus.FAILED, post);
             disablePost(post.getId());
             throw new ResourceNotFoundException("Comments are empty. Status: FAILED. Disabling post.");
         }
@@ -141,11 +138,9 @@ public class PostServiceImpl implements PostService {
         }
         post.setComments(arrayComments);
 
-        StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
-        historyRepository.save(findOkComments);
+        saveStatusHistory(PostStatus.COMMENTS_OK, post);
 
-        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post);
-        historyRepository.save(enabledPost);
+        saveStatusHistory(PostStatus.ENABLED, post);
 
         return postRepository.save(post);
     }
@@ -182,8 +177,7 @@ public class PostServiceImpl implements PostService {
         StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
 
         if (mostRecentHistory.getStatus() == PostStatus.ENABLED || mostRecentHistory.getStatus() == PostStatus.FAILED) {
-            StatusHistory disableHistory = new StatusHistory(LocalDateTime.now(), PostStatus.DISABLED, post);
-            historyRepository.save(disableHistory);
+            saveStatusHistory(PostStatus.DISABLED, post);
         } else {
             throw new InvalidPostException("Could not disable post. The actual status is: " + mostRecentHistory);
         }
