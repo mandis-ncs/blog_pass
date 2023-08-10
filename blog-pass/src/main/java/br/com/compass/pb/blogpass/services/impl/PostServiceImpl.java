@@ -15,7 +15,9 @@ import br.com.compass.pb.blogpass.services.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileFilter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
+@Transactional
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -30,6 +33,8 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final HistoryRepository historyRepository;
     private final CommentsRepository commentsRepository;
+
+    List<StatusHistory> arrayStatus = new ArrayList<>();
 
     public PostServiceImpl(PostClient postClient, PostRepository postRepository, HistoryRepository historyRepository,
                            CommentsRepository commentsRepository) {
@@ -67,42 +72,17 @@ public class PostServiceImpl implements PostService {
         post.setId(postId);
 
         // status history CREATED
-        List<StatusHistory> arrayStatus = new ArrayList<>();
         StatusHistory createdPost  = new StatusHistory(LocalDateTime.now(), PostStatus.CREATED, post);
         arrayStatus.add(createdPost);
 
+        log.info("saving history in process post");
 
-
-        // status history FIND
-        StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
-        arrayStatus.add(findingPost);
-
-        post = postClient.getPostById(postId);
-
-        StatusHistory findOkPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_OK, post);
-        arrayStatus.add(findOkPost);
-
-        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
-        arrayStatus.add(findingComment);
-
-        List<Comment> arrayComments =new ArrayList<>();
-        List<Comment> fetchedComments = postClient.getCommentsByPostId(postId);
-
-        for (Comment fetchedComment : fetchedComments) {
-            Comment comment = new Comment(fetchedComment.getBody(), post);
-            arrayComments.add(comment);
-        }
-        post.setComments(arrayComments);
-
-        StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
-        arrayStatus.add(findOkComments);
-
-        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post); //CAN BE DISABLE !!!
         post.setHistory(arrayStatus);
-        arrayStatus.add(enabledPost);
-
         postRepository.save(post);
 
+        // JUST FOR TEST -> CALLING FindPostById Method
+        log.info("calling POST FINDING history");
+        findPostById(post);
     }
 
     @Override
@@ -139,10 +119,10 @@ public class PostServiceImpl implements PostService {
             StatusHistory disableHistory = new StatusHistory(LocalDateTime.now(), PostStatus.DISABLED, post);
             historyList.add(disableHistory);
 
-            log.info("tentativa de salvar");
+            log.info("tentativa de salvar status disable");
             historyRepository.save(disableHistory);
 
-            log.info("post salvo");
+            log.info("status disable salvo");
         } else {
             throw new InvalidPostException("The actual status is not ENABLE, but: " + mostRecentHistory);
         }
@@ -156,4 +136,51 @@ public class PostServiceImpl implements PostService {
         }
         return posts;
     }
+
+    public Post findPostById(Post post) {
+
+        // status history FIND
+        StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post);
+        historyRepository.save(findingPost);
+
+        log.info("setting POST FIND history");
+
+        post = postClient.getPostById(post.getId());
+
+        if (post.getTitle().isEmpty() || post.getBody().isEmpty()) {
+            log.info("saving history FAILED");
+            StatusHistory failedPost  = new StatusHistory(LocalDateTime.now(), PostStatus.FAILED, post); // CAN BE FAILED -> THEN DISABLE !!!
+            historyRepository.save(failedPost);
+            log.info("save history FAILED success");
+        }
+
+        StatusHistory findOkPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_OK, post);
+        historyRepository.save(findOkPost);
+        log.info("saving history POST OK");
+
+        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
+        historyRepository.save(findingComment);
+        log.info("saving history COMMENTS_FIND");
+
+        log.info("returning");
+        return postRepository.save(post);
+    }
+//
+//
+//    public Post findCommentByPostId(Post post) {
+//
+//        List<Comment> arrayComments =new ArrayList<>();
+//        List<Comment> fetchedComments = postClient.getCommentsByPostId(postId);
+//
+//        for (Comment fetchedComment : fetchedComments) {
+//            Comment comment = new Comment(fetchedComment.getBody(), post);
+//            arrayComments.add(comment);
+//        }
+//        post.setComments(arrayComments);
+//
+//        StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
+//        arrayStatus.add(findOkComments);
+//
+//        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post); //CAN BE DISABLE !!!
+//    }
 }
