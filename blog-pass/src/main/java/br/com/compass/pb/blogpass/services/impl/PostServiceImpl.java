@@ -7,6 +7,7 @@ import br.com.compass.pb.blogpass.entities.PostStatus;
 import br.com.compass.pb.blogpass.entities.StatusHistory;
 import br.com.compass.pb.blogpass.exceptions.DuplicatedPostException;
 import br.com.compass.pb.blogpass.exceptions.InvalidPostException;
+import br.com.compass.pb.blogpass.exceptions.ResourceNotFoundException;
 import br.com.compass.pb.blogpass.repositories.CommentsRepository;
 import br.com.compass.pb.blogpass.repositories.HistoryRepository;
 import br.com.compass.pb.blogpass.repositories.PostRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -68,7 +70,7 @@ public class PostServiceImpl implements PostService {
         }
 
         // status history FIND
-        StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post); // CAN BE FAILED
+        StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
         arrayStatus.add(findingPost);
 
         post = postClient.getPostById(postId);
@@ -76,7 +78,7 @@ public class PostServiceImpl implements PostService {
         StatusHistory findOkPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_OK, post);
         arrayStatus.add(findOkPost);
 
-        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post); // CAN BE FAILED
+        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post); // CAN BE FAILED -> THEN DISABLE !!!
         arrayStatus.add(findingComment);
 
         List<Comment> arrayComments =new ArrayList<>();
@@ -91,7 +93,7 @@ public class PostServiceImpl implements PostService {
         StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
         arrayStatus.add(findOkComments);
 
-        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post); //CAN BE DISABLE
+        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post); //CAN BE DISABLE !!!
         post.setHistory(arrayStatus);
         arrayStatus.add(enabledPost);
 
@@ -109,10 +111,40 @@ public class PostServiceImpl implements PostService {
     @Async
     public void disablePost(Long postId) {
 
+        if (postId < 0 || postId > 100) {
+            throw new InvalidPostException("The post id should be between 0 and 100.");
+        }
+
+        Optional<Post> postOptional = postRepository.findById(postId);
+
+        if (postOptional.isEmpty()) {
+            throw new DuplicatedPostException("This does not exists: " + postId);
+        }
+
+        Post post = postOptional.get();
+        List<StatusHistory> historyList = post.getHistory();
+
+        if (historyList.isEmpty()) {
+            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
+        }
+
+        StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
+
+        if (mostRecentHistory.getStatus() == PostStatus.ENABLED) {
+            StatusHistory disableHistory = new StatusHistory(LocalDateTime.now(), PostStatus.DISABLED, post);
+            historyList.add(disableHistory);
+            postRepository.save(post);
+        } else {
+            throw new InvalidPostException("The actual status is not ENABLE, but: " + mostRecentHistory);
+        }
     }
 
     @Override
     public List<Post> getAllPosts() {
-        return postRepository.findAll();
+        List<Post> posts = postRepository.findAll();
+        if (posts.isEmpty()) {
+            throw new ResourceNotFoundException("No posts were found!");
+        }
+        return posts;
     }
 }
