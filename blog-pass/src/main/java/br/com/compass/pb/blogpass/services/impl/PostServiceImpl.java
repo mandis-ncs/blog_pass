@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.FileFilter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -33,8 +34,6 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final HistoryRepository historyRepository;
     private final CommentsRepository commentsRepository;
-
-    List<StatusHistory> arrayStatus = new ArrayList<>();
 
     public PostServiceImpl(PostClient postClient, PostRepository postRepository, HistoryRepository historyRepository,
                            CommentsRepository commentsRepository) {
@@ -58,10 +57,16 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    private StatusHistory saveStatusHistory(PostStatus status, Post post) {
+        StatusHistory history = new StatusHistory(LocalDateTime.now(), status, post);
+        return historyRepository.save(history);
+    }
+
+
     @Override
+    @Transactional
     @Async
     public void processPost(Long postId) {
-
         if (postId < 0 || postId > 100) {
             throw new InvalidPostException("The post id should be between 0 and 100.");
         }
@@ -72,15 +77,11 @@ public class PostServiceImpl implements PostService {
 
         Post post = new Post();
         post.setId(postId);
+        postRepository.save(post);
 
         // status history CREATED
-        StatusHistory createdPost  = new StatusHistory(LocalDateTime.now(), PostStatus.CREATED, post);
-        arrayStatus.add(createdPost);
-
-        log.info("saving history in process post");
-
-        post.setHistory(arrayStatus);
-        postRepository.save(post);
+        StatusHistory createdPost = saveStatusHistory(PostStatus.CREATED, post);
+        historyRepository.save(createdPost);
 
         // JUST FOR TEST -> CALLING FindPostById Method
         log.info("calling POST FINDING history");
@@ -89,6 +90,7 @@ public class PostServiceImpl implements PostService {
         log.info("calling populate COMMENTS");
         populateCommentByPostId(populatedPost);
     }
+
 
 
     public Post populatePostById(Post post) {
