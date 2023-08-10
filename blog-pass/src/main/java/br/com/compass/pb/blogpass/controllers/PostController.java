@@ -39,9 +39,8 @@ public class PostController {
 
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<String> disablePost(@PathVariable Long postId) {
+    public void disablePost(@PathVariable Long postId) {
         postService.disablePost(postId);
-        return ResponseEntity.ok("Post disabled.");
     }
 
 

@@ -44,6 +44,7 @@ public class PostServiceImpl implements PostService {
         this.commentsRepository = commentsRepository;
     }
 
+
     @Async
     public Post getPostById(Long postId) {
         return postClient.getPostById(postId);
@@ -55,6 +56,7 @@ public class PostServiceImpl implements PostService {
     public List<Post> getAllPostsFromExternalService() {
         return postClient.getAllPosts();
     }
+
 
     @Override
     @Async
@@ -88,57 +90,6 @@ public class PostServiceImpl implements PostService {
         populateCommentByPostId(populatedPost);
     }
 
-    @Override
-    @Async
-    public void reprocessPost(Long postId) {
-
-    }
-
-    @Override
-    @Async
-    public void disablePost(Long postId) {
-
-        if (postId < 0 || postId > 100) {
-            throw new InvalidPostException("The post id should be between 0 and 100.");
-        }
-
-        Optional<Post> postOptional = postRepository.findById(postId);
-
-        if (postOptional.isEmpty()) {
-            throw new DuplicatedPostException("This does not exists: " + postId);
-        }
-
-        Post post = postOptional.get();
-        List<StatusHistory> historyList = post.getHistory();
-
-        if (historyList.isEmpty()) {
-            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
-        }
-
-        StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
-
-        log.info("percorrendo lista");
-        if (mostRecentHistory.getStatus() == PostStatus.ENABLED) {
-            StatusHistory disableHistory = new StatusHistory(LocalDateTime.now(), PostStatus.DISABLED, post);
-            historyList.add(disableHistory);
-
-            log.info("tentativa de salvar status disable");
-            historyRepository.save(disableHistory);
-
-            log.info("status disable salvo");
-        } else {
-            throw new InvalidPostException("The actual status is not ENABLE, but: " + mostRecentHistory);
-        }
-    }
-
-    @Override
-    public List<Post> getAllPosts() {
-        List<Post> posts = postRepository.findAll();
-        if (posts.isEmpty()) {
-            throw new ResourceNotFoundException("No posts were found!");
-        }
-        return posts;
-    }
 
     public Post populatePostById(Post post) {
 
@@ -196,4 +147,54 @@ public class PostServiceImpl implements PostService {
 
         return postRepository.save(post);
     }
+
+
+    @Override
+    @Async
+    public void reprocessPost(Long postId) {
+
+    }
+
+
+    @Override
+    @Async
+    public void disablePost(Long postId) {
+
+        if (postId < 0 || postId > 100) {
+            throw new InvalidPostException("The post id should be between 0 and 100.");
+        }
+
+        Optional<Post> postOptional = postRepository.findById(postId);
+        if (postOptional.isEmpty()) {
+            throw new ResourceNotFoundException("This post id does not exists: " + postId);
+        }
+
+        Post post = postOptional.get();
+        List<StatusHistory> historyList = post.getHistory();
+
+        if (historyList.isEmpty()) {
+            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
+        }
+
+        log.info("percorrendo lista");
+        StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
+
+        if (mostRecentHistory.getStatus() == PostStatus.ENABLED || mostRecentHistory.getStatus() == PostStatus.FAILED) {
+            StatusHistory disableHistory = new StatusHistory(LocalDateTime.now(), PostStatus.DISABLED, post);
+            historyRepository.save(disableHistory);
+        } else {
+            throw new InvalidPostException("Could not disable post. The actual status is: " + mostRecentHistory);
+        }
+    }
+
+
+    @Override
+    public List<Post> getAllPosts() {
+        List<Post> posts = postRepository.findAll();
+        if (posts.isEmpty()) {
+            throw new ResourceNotFoundException("No posts were found!");
+        }
+        return posts;
+    }
+
 }
