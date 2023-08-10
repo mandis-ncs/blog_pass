@@ -16,5 +16,7 @@ public interface PostService {
 
     void disablePost(Long postId);
 
-    List<Post> getAllPosts();
+    List<Post> returnAllPostsFromAPI();
+
+    List<Post> getAllPostsFromBD();
 }

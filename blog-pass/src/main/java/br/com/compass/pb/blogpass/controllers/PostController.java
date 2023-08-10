@@ -1,6 +1,5 @@
 package br.com.compass.pb.blogpass.controllers;
 
-import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
 import br.com.compass.pb.blogpass.entities.Post;
 import br.com.compass.pb.blogpass.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ public class PostController {
 
     @GetMapping
     public List<Post> getAllPosts() {
-        return postService.getAllPosts();
+        return postService.getAllPostsFromBD();
     }
 
     @PostMapping("/{postId}")
@@ -45,8 +44,8 @@ public class PostController {
 
 
     @GetMapping("/hello")
-    public String helloWorld() {
-        return "Hello, World!";
+    public List<Post> helloWorld() {
+        return postService.returnAllPostsFromAPI();
     }
 
 

@@ -17,13 +17,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.FileFilter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Transactional
@@ -150,6 +147,31 @@ public class PostServiceImpl implements PostService {
     @Async
     public void reprocessPost(Long postId) {
 
+        if (postId < 0 || postId > 100) {
+            throw new InvalidPostException("The post id should be between 0 and 100.");
+        }
+
+        Optional<Post> postOptional = postRepository.findById(postId);
+        if (postOptional.isEmpty()) {
+            throw new ResourceNotFoundException("This post id does not exists: " + postId);
+        }
+
+        Post post = postOptional.get();
+        List<StatusHistory> historyList = post.getHistory();
+
+        if (historyList.isEmpty()) {
+            throw new ResourceNotFoundException("Empty status story for post id: " + postId);
+        }
+
+        log.info("percorrendo lista");
+        StatusHistory mostRecentHistory = historyList.get(historyList.size() - 1);
+
+        if (mostRecentHistory.getStatus() != PostStatus.ENABLED && mostRecentHistory.getStatus() != PostStatus.DISABLED) {
+            throw new InvalidPostException("Could not update post. The actual status is: " + mostRecentHistory);
+        }
+        Post postPopulated = populatePostById(post);
+        populateCommentByPostId(postPopulated);
+
     }
 
 
@@ -185,7 +207,12 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public List<Post> getAllPosts() {
+    public List<Post> returnAllPostsFromAPI() {
+        return postClient.getAllPosts();
+    }
+
+    @Override
+    public List<Post> getAllPostsFromBD() {
         List<Post> posts = postRepository.findAll();
         if (posts.isEmpty()) {
             throw new ResourceNotFoundException("No posts were found!");

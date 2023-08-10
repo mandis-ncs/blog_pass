@@ -1,6 +1,5 @@
 package br.com.compass.pb.blogpass.dto;
 
-import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,16 +10,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 
-@FeignClient(value = "post-feign-client", url = "https://jsonplaceholder.typicode.com/posts")
+@FeignClient(value = "post-feign-client", url = "https://jsonplaceholder.typicode.com")
 public interface PostClient {
 
-    @GetMapping
+    @GetMapping("/posts")
     List<Post> getAllPosts();
 
-    @GetMapping("/{postId}")
+    @GetMapping("/posts/{postId}")
     Post getPostById(@PathVariable("postId") Long postId);
 
-    @GetMapping("/{postId}/comments")
+    @GetMapping("/posts/{postId}/comments")
     List<Comment> getCommentsByPostId(@PathVariable("postId") Long postId);
 
 }
