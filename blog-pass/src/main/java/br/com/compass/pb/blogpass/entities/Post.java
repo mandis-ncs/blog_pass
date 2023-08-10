@@ -28,11 +28,11 @@ public class Post {
 
     @JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "post", cascade = CascadeType.ALL)
-    private List<StatusHistory> history;
+    private List<Comment> comments;
 
     @JsonManagedReference
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "post", cascade = CascadeType.ALL)
-    private List<Comment> comments;
+    private List<StatusHistory> history;
 
 }
 

@@ -5,6 +5,8 @@ import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
 import br.com.compass.pb.blogpass.entities.PostStatus;
 import br.com.compass.pb.blogpass.entities.StatusHistory;
+import br.com.compass.pb.blogpass.exceptions.DuplicatedPostException;
+import br.com.compass.pb.blogpass.exceptions.InvalidPostException;
 import br.com.compass.pb.blogpass.repositories.CommentsRepository;
 import br.com.compass.pb.blogpass.repositories.HistoryRepository;
 import br.com.compass.pb.blogpass.repositories.PostRepository;
@@ -48,14 +50,35 @@ public class PostServiceImpl implements PostService {
     @Override
     @Async
     public void processPost(Long postId) {
-        Post post = postClient.getPostById(postId);
 
-        // status history created
+        Post post = new Post();
+        post.setId(postId);
+
+        // status history CREATED
         List<StatusHistory> arrayStatus = new ArrayList<>();
-        StatusHistory createdHistory  = new StatusHistory(LocalDateTime.now(), PostStatus.CREATED, post);
-        arrayStatus.add(createdHistory);
+        StatusHistory createdPost  = new StatusHistory(LocalDateTime.now(), PostStatus.CREATED, post);
+        arrayStatus.add(createdPost);
 
-        // comments
+        if (postId < 0 || postId > 100) {
+            throw new InvalidPostException("The post id should be between 0 and 100.");
+        }
+
+        if (postRepository.findById(postId).isPresent()) {
+            throw new DuplicatedPostException("This post if id already exists: " + postId);
+        }
+
+        // status history FIND
+        StatusHistory findingPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_FIND, post); // CAN BE FAILED
+        arrayStatus.add(findingPost);
+
+        post = postClient.getPostById(postId);
+
+        StatusHistory findOkPost  = new StatusHistory(LocalDateTime.now(), PostStatus.POST_OK, post);
+        arrayStatus.add(findOkPost);
+
+        StatusHistory findingComment  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post); // CAN BE FAILED
+        arrayStatus.add(findingComment);
+
         List<Comment> arrayComments =new ArrayList<>();
         List<Comment> fetchedComments = postClient.getCommentsByPostId(postId);
 
@@ -63,13 +86,15 @@ public class PostServiceImpl implements PostService {
             Comment comment = new Comment(fetchedComment.getBody(), post);
             arrayComments.add(comment);
         }
-
-        // status history find
-        StatusHistory commentsFindHistory = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_FIND, post);
-        arrayStatus.add(commentsFindHistory);
-
-        post.setHistory(arrayStatus);
         post.setComments(arrayComments);
+
+        StatusHistory findOkComments  = new StatusHistory(LocalDateTime.now(), PostStatus.COMMENTS_OK, post);
+        arrayStatus.add(findOkComments);
+
+        StatusHistory enabledPost  = new StatusHistory(LocalDateTime.now(), PostStatus.ENABLED, post); //CAN BE DISABLE
+        post.setHistory(arrayStatus);
+        arrayStatus.add(enabledPost);
+
         postRepository.save(post);
 
     }
