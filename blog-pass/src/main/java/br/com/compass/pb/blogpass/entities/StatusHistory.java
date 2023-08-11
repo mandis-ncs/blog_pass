@@ -27,7 +27,7 @@ public class StatusHistory {
     private PostStatus status;
 
     @JsonBackReference
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 

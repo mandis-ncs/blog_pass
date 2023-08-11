@@ -44,12 +44,4 @@ public class PostController {
         return ResponseEntity.ok("Post has been disabled.");
     }
 
-//
-//    @GetMapping("/hello")
-//    public List<Post> listAllPostsFromAPI() {
-//        return postService.returnAllPostsFromAPI();
-//    }
-
-
-
 }

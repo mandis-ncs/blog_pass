@@ -145,7 +145,7 @@ public class PostServiceImpl implements PostService {
 
         saveStatusHistory(PostStatus.POST_OK, post);
 
-        log.info("returning");
+        log.info("returning, deu ruim aqui no SERVICE");
         return postRepository.save(post);
     }
 
