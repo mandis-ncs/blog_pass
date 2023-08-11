@@ -85,6 +85,27 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    public void fetchAndSaveCommentsArray (Post post) {
+        List<Comment> arrayComments = new ArrayList<>();
+        List<Comment> fetchedComments = postClient.getCommentsByPostId(post.getId());
+
+        if (fetchedComments.isEmpty()) {
+            saveStatusHistory(PostStatus.FAILED, post);
+            disablePost(post.getId());
+            throw new ResourceNotFoundException("Comments are empty. Status: FAILED. Disabling post.");
+        }
+
+        for (Comment fetchedComment : fetchedComments) {
+            Comment comment = new Comment(fetchedComment.getBody(), post);
+            comment.setId(fetchedComment.getId());
+            arrayComments.add(comment);
+        }
+        post.setComments(arrayComments);
+
+        saveStatusHistory(PostStatus.COMMENTS_OK, post);
+    }
+
+
     @Override
     @Transactional
     public void processPost(Long postId) {
@@ -99,7 +120,6 @@ public class PostServiceImpl implements PostService {
         post.setId(postId);
         postRepository.save(post);
 
-        // status history CREATED
         StatusHistory createdPost = saveStatusHistory(PostStatus.CREATED, post);
         historyRepository.save(createdPost);
 
@@ -115,7 +135,6 @@ public class PostServiceImpl implements PostService {
 
         Post post = postClient.getPostById(postId);
 
-        // status history FIND
         saveStatusHistory(PostStatus.POST_FIND, post);
 
         if (post.getTitle().isEmpty() || post.getBody().isEmpty()) {
@@ -138,23 +157,7 @@ public class PostServiceImpl implements PostService {
 
         saveStatusHistory(PostStatus.COMMENTS_FIND, post);
 
-        List<Comment> arrayComments = new ArrayList<>();
-        List<Comment> fetchedComments = postClient.getCommentsByPostId(post.getId());
-
-        if (fetchedComments.isEmpty()) {
-            saveStatusHistory(PostStatus.FAILED, post);
-            disablePost(post.getId());
-            throw new ResourceNotFoundException("Comments are empty. Status: FAILED. Disabling post.");
-        }
-
-        for (Comment fetchedComment : fetchedComments) {
-            Comment comment = new Comment(fetchedComment.getBody(), post);
-            comment.setId(fetchedComment.getId());
-            arrayComments.add(comment);
-        }
-        post.setComments(arrayComments);
-
-        saveStatusHistory(PostStatus.COMMENTS_OK, post);
+        fetchAndSaveCommentsArray(post);
 
         saveStatusHistory(PostStatus.ENABLED, post);
 
@@ -168,9 +171,8 @@ public class PostServiceImpl implements PostService {
         validatePostIdBetween1And100(postId);
 
         Post post = findExistentPostById(postId).get();
-        List<StatusHistory> historyList = post.getHistory();
 
-        StatusHistory mostRecentHistory = getMostRecentStatus(historyList, postId);
+        StatusHistory mostRecentHistory = getMostRecentStatus(post.getHistory(), postId);
 
         if (mostRecentHistory.getStatus() != PostStatus.ENABLED && mostRecentHistory.getStatus() != PostStatus.DISABLED) {
             throw new InvalidPostException("Could not update post. The actual status is: " + mostRecentHistory);
@@ -180,8 +182,6 @@ public class PostServiceImpl implements PostService {
 
         Post postPopulated = populatePostById(postId);
 
-        // TA CRIANDO MAIS 5 COMMENTS, E NAO SUBSCREVENDO OU VERIFICANDO SLA
-        // pegar os comments associados, e dar um update
         populateCommentByPostId(postId);
 
     }
@@ -194,9 +194,7 @@ public class PostServiceImpl implements PostService {
 
         Post post = findExistentPostById(postId).get();
 
-        List<StatusHistory> historyList = post.getHistory();
-
-        StatusHistory mostRecentHistory = getMostRecentStatus(historyList, postId);
+        StatusHistory mostRecentHistory = getMostRecentStatus(post.getHistory(), postId);
 
         if (mostRecentHistory.getStatus() == PostStatus.ENABLED || mostRecentHistory.getStatus() == PostStatus.FAILED) {
             saveStatusHistory(PostStatus.DISABLED, post);
