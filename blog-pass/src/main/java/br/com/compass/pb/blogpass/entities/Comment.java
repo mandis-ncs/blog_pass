@@ -20,6 +20,7 @@ public class Comment {
     @Id
     private Long id;
 
+    @Column(length = 500)
     private String body;
 
     @JsonBackReference
