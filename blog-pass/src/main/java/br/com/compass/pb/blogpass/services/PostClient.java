@@ -1,4 +1,4 @@
-package br.com.compass.pb.blogpass.dto;
+package br.com.compass.pb.blogpass.services;
 
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;

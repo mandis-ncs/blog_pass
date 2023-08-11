@@ -1,6 +1,6 @@
 package br.com.compass.pb.blogpass.services.impl;
 
-import br.com.compass.pb.blogpass.dto.PostClient;
+import br.com.compass.pb.blogpass.services.PostClient;
 import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
