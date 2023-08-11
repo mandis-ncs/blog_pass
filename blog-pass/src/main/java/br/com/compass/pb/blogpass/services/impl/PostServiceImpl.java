@@ -87,7 +87,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @Async
     public void processPost(Long postId) {
 
         validatePostIdBetween1And100(postId);
@@ -104,14 +103,9 @@ public class PostServiceImpl implements PostService {
         StatusHistory createdPost = saveStatusHistory(PostStatus.CREATED, post);
         historyRepository.save(createdPost);
 
+        // sending to first queue
         String message = "Post " + postId + " created";
         messageProducer.sendMessageToDestination("post_population", message);
-
-//        log.info("calling POST FINDING history");
-//        Post populatedPost = populatePostById(postId);
-//
-//        log.info("calling populate COMMENTS");
-//        populateCommentByPostId(postId);
 
     }
 
@@ -155,6 +149,7 @@ public class PostServiceImpl implements PostService {
 
         for (Comment fetchedComment : fetchedComments) {
             Comment comment = new Comment(fetchedComment.getBody(), post);
+            comment.setId(fetchedComment.getId());
             arrayComments.add(comment);
         }
         post.setComments(arrayComments);
@@ -168,7 +163,6 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    @Async
     public void reprocessPost(Long postId) {
 
         validatePostIdBetween1And100(postId);
@@ -187,13 +181,13 @@ public class PostServiceImpl implements PostService {
         Post postPopulated = populatePostById(postId);
 
         // TA CRIANDO MAIS 5 COMMENTS, E NAO SUBSCREVENDO OU VERIFICANDO SLA
+        // pegar os comments associados, e dar um update
         populateCommentByPostId(postId);
 
     }
 
 
     @Override
-    @Async
     public void disablePost(Long postId) {
 
         validatePostIdBetween1And100(postId);
