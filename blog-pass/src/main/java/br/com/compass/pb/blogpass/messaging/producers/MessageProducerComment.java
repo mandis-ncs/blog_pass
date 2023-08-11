@@ -10,17 +10,17 @@ import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MessageProducer {
+public class MessageProducerComment {
 
     @Autowired
     private JmsTemplate jmsTemplate;
 
-    public void sendMessageToDestination(String queue, final String messagePost) {
+    public void sendMessageToDestination(String queue, final String messageComment) {
         jmsTemplate.send(queue, new MessageCreator() {
             @Override
             public Message createMessage(Session session) throws JMSException {
-                ObjectMessage message1 = session.createObjectMessage(messagePost);
-                return message1;
+                ObjectMessage message2 = session.createObjectMessage(messageComment);
+                return message2;
             }
         });
     }

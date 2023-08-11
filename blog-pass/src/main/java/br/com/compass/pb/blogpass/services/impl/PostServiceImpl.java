@@ -1,5 +1,6 @@
 package br.com.compass.pb.blogpass.services.impl;
 
+import br.com.compass.pb.blogpass.messaging.producers.MessageProducerPost;
 import br.com.compass.pb.blogpass.services.PostClient;
 import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.entities.Comment;
@@ -35,31 +36,28 @@ public class PostServiceImpl implements PostService {
     private final HistoryRepository historyRepository;
     private final CommentsRepository commentsRepository;
     private final ModelMapper modelMapper;
+    private final MessageProducerPost messageProducer;
 
     public PostServiceImpl(PostClient postClient, PostRepository postRepository, HistoryRepository historyRepository,
-                           CommentsRepository commentsRepository, ModelMapper modelMapper) {
+                           CommentsRepository commentsRepository, ModelMapper modelMapper, MessageProducerPost messageProducer) {
         this.postClient = postClient;
         this.postRepository = postRepository;
         this.historyRepository = historyRepository;
         this.commentsRepository = commentsRepository;
         this.modelMapper = modelMapper;
+        this.messageProducer = messageProducer;
     }
 
 
-    @Async
-    public Post getPostById(Long postId) {
-        return postClient.getPostById(postId);
-    }
-
-
-
-    private StatusHistory saveStatusHistory(PostStatus status, Post post) {
+    @Override
+    public StatusHistory saveStatusHistory(PostStatus status, Post post) {
         StatusHistory history = new StatusHistory(LocalDateTime.now(), status, post);
         return historyRepository.save(history);
     }
 
 
-    private StatusHistory getMostRecentStatus(List<StatusHistory> historyList, Long postId) {
+    @Override
+    public StatusHistory getMostRecentStatus(List<StatusHistory> historyList, Long postId) {
         if (historyList.isEmpty()) {
             throw new ResourceNotFoundException("Empty status story for post id: " + postId);
         }
@@ -69,15 +67,16 @@ public class PostServiceImpl implements PostService {
     }
 
 
-
-    private void validatePostIdBetween1And100(Long postId) {
+    @Override
+    public void validatePostIdBetween1And100(Long postId) {
         if (postId < 0 || postId > 100) {
             throw new InvalidPostException("The post id should be between 0 and 100.");
         }
     }
 
 
-    private Optional<Post> findExistentPostById(Long postId) {
+    @Override
+    public Optional<Post> findExistentPostById(Long postId) {
         Optional<Post> postOptional = postRepository.findById(postId);
         if (postOptional.isEmpty()) {
             throw new ResourceNotFoundException("This post id does not exist: " + postId);
@@ -105,22 +104,25 @@ public class PostServiceImpl implements PostService {
         StatusHistory createdPost = saveStatusHistory(PostStatus.CREATED, post);
         historyRepository.save(createdPost);
 
-        // JUST FOR TEST -> CALLING FindPostById Method
-        log.info("calling POST FINDING history");
-        Post populatedPost = populatePostById(post);
+        String message = "Post " + postId + " created";
+        messageProducer.sendMessageToDestination("post_population", message);
 
-        log.info("calling populate COMMENTS");
-        populateCommentByPostId(populatedPost);
+//        log.info("calling POST FINDING history");
+//        Post populatedPost = populatePostById(postId);
+//
+//        log.info("calling populate COMMENTS");
+//        populateCommentByPostId(postId);
+
     }
 
 
+    @Override
+    public Post populatePostById(Long postId) {
 
-    public Post populatePostById(Post post) {
+        Post post = postClient.getPostById(postId);
 
         // status history FIND
         saveStatusHistory(PostStatus.POST_FIND, post);
-
-        post = postClient.getPostById(post.getId());
 
         if (post.getTitle().isEmpty() || post.getBody().isEmpty()) {
             saveStatusHistory(PostStatus.FAILED, post);
@@ -135,7 +137,10 @@ public class PostServiceImpl implements PostService {
     }
 
 
-    public Post populateCommentByPostId(Post post) {
+    @Override
+    public Post populateCommentByPostId(Long postId) {
+
+        Post post = postRepository.findById(postId).get();
 
         saveStatusHistory(PostStatus.COMMENTS_FIND, post);
 
@@ -179,8 +184,10 @@ public class PostServiceImpl implements PostService {
 
         saveStatusHistory(PostStatus.UPDATING, post);
 
-        Post postPopulated = populatePostById(post);
-        populateCommentByPostId(postPopulated);
+        Post postPopulated = populatePostById(postId);
+
+        // TA CRIANDO MAIS 5 COMMENTS, E NAO SUBSCREVENDO OU VERIFICANDO SLA
+        populateCommentByPostId(postId);
 
     }
 
