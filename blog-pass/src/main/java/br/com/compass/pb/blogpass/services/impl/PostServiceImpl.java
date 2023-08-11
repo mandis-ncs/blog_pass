@@ -1,7 +1,7 @@
 package br.com.compass.pb.blogpass.services.impl;
 
 import br.com.compass.pb.blogpass.dto.PostClient;
-import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
+import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
 import br.com.compass.pb.blogpass.entities.PostStatus;
@@ -119,13 +119,10 @@ public class PostServiceImpl implements PostService {
 
         // status history FIND
         saveStatusHistory(PostStatus.POST_FIND, post);
-        log.info("setting POST FIND history");
 
         post = postClient.getPostById(post.getId());
 
         if (post.getTitle().isEmpty() || post.getBody().isEmpty()) {
-
-            log.info("saving history FAILED");
             saveStatusHistory(PostStatus.FAILED, post);
             disablePost(post.getId());
             throw new ResourceNotFoundException("Post title or body is empty. Status: FAILED. Disabling post.");
@@ -141,7 +138,6 @@ public class PostServiceImpl implements PostService {
     public Post populateCommentByPostId(Post post) {
 
         saveStatusHistory(PostStatus.COMMENTS_FIND, post);
-        log.info("saving history COMMENTS_FIND");
 
         List<Comment> arrayComments = new ArrayList<>();
         List<Comment> fetchedComments = postClient.getCommentsByPostId(post.getId());
@@ -215,7 +211,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostResponseDto> getAllPostsFromBD() {
+    public List<PostDto> getAllPostsFromBD() {
         List<Post> posts = postRepository.findAll();
 
         if (posts.isEmpty()) {
@@ -223,8 +219,8 @@ public class PostServiceImpl implements PostService {
         }
 
         ModelMapper modelMapper = new ModelMapper();
-        List<PostResponseDto> responseDtoList = modelMapper.map(
-                posts, new TypeToken<List<PostResponseDto>>() {}.getType());
+        List<PostDto> responseDtoList = modelMapper.map(
+                posts, new TypeToken<List<PostDto>>() {}.getType());
 
         return responseDtoList;
     }

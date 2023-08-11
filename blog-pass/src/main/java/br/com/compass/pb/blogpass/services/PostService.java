@@ -1,6 +1,6 @@
 package br.com.compass.pb.blogpass.services;
 
-import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
+import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.entities.Post;
 
 import java.util.List;
@@ -17,5 +17,5 @@ public interface PostService {
 
     List<Post> returnAllPostsFromAPI();
 
-    List<PostResponseDto> getAllPostsFromBD();
+    List<PostDto> getAllPostsFromBD();
 }

@@ -1,7 +1,6 @@
 package br.com.compass.pb.blogpass.controllers;
 
-import br.com.compass.pb.blogpass.dto.response.PostResponseDto;
-import br.com.compass.pb.blogpass.entities.Post;
+import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponseDto>> getAllPosts() {
+    public ResponseEntity<List<PostDto>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPostsFromBD());
     }
 
