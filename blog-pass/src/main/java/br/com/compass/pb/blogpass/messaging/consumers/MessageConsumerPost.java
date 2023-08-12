@@ -35,5 +35,8 @@ public class MessageConsumerPost {
             String secondMessage = "Post " + postId + " postok";
             messageProducerComment.sendMessageToDestination("comment_population", secondMessage);
         }
+        else {
+            throw new RuntimeException("Failed to process post in queue post_population. Try again.");
+        }
     }
 }

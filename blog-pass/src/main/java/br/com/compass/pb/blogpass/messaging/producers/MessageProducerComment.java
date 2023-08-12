@@ -15,14 +15,9 @@ public class MessageProducerComment {
     @Autowired
     private JmsTemplate jmsTemplate;
 
+
     public void sendMessageToDestination(String queue, final String messageComment) {
-        jmsTemplate.send(queue, new MessageCreator() {
-            @Override
-            public Message createMessage(Session session) throws JMSException {
-                ObjectMessage message2 = session.createObjectMessage(messageComment);
-                return message2;
-            }
-        });
+        jmsTemplate.send(queue, session -> session.createObjectMessage(messageComment));
     }
 
 }

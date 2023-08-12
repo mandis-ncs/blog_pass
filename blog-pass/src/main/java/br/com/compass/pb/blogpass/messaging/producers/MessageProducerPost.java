@@ -16,13 +16,7 @@ public class MessageProducerPost {
     private JmsTemplate jmsTemplate;
 
     public void sendMessageToDestination(String queue, final String messagePost) {
-        jmsTemplate.send(queue, new MessageCreator() {
-            @Override
-            public Message createMessage(Session session) throws JMSException {
-                ObjectMessage message1 = session.createObjectMessage(messagePost);
-                return message1;
-            }
-        });
+        jmsTemplate.send(queue, session -> session.createObjectMessage(messagePost));
     }
 
 }
