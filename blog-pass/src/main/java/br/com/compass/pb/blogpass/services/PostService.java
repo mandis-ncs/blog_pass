@@ -12,7 +12,7 @@ public interface PostService {
 
     StatusHistory saveStatusHistory(PostStatus status, Post post);
 
-    StatusHistory getMostRecentStatus(List<StatusHistory> historyList, Long postId);
+    PostStatus getMostRecentStatus(List<StatusHistory> historyList, Long postId);
 
     void validatePostIdBetween1And100(Long postId);
 

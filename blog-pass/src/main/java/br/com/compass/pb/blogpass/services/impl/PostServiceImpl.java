@@ -57,13 +57,13 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public StatusHistory getMostRecentStatus(List<StatusHistory> historyList, Long postId) {
+    public PostStatus getMostRecentStatus(List<StatusHistory> historyList, Long postId) {
         if (historyList.isEmpty()) {
             throw new ResourceNotFoundException("Empty status story for post id: " + postId);
         }
 
         log.info("percorrendo lista");
-        return historyList.get(historyList.size() - 1);
+        return historyList.get(historyList.size() - 1).getStatus();
     }
 
 
@@ -174,10 +174,10 @@ public class PostServiceImpl implements PostService {
 
         Post post = findExistentPostById(postId).get();
 
-        StatusHistory mostRecentHistory = getMostRecentStatus(post.getHistory(), postId);
+        PostStatus status = getMostRecentStatus(post.getHistory(), postId);
 
-        if (mostRecentHistory.getStatus() != PostStatus.ENABLED && mostRecentHistory.getStatus() != PostStatus.DISABLED) {
-            throw new InvalidPostException("Could not update post. The actual status is: " + mostRecentHistory);
+        if (status != PostStatus.ENABLED && status != PostStatus.DISABLED) {
+            throw new InvalidPostException("Could not update post. The actual status is: " + status);
         }
 
         saveStatusHistory(PostStatus.UPDATING, post);
@@ -196,12 +196,12 @@ public class PostServiceImpl implements PostService {
 
         Post post = findExistentPostById(postId).get();
 
-        StatusHistory mostRecentHistory = getMostRecentStatus(post.getHistory(), postId);
+        PostStatus status = getMostRecentStatus(post.getHistory(), postId);
 
-        if (mostRecentHistory.getStatus() == PostStatus.ENABLED || mostRecentHistory.getStatus() == PostStatus.FAILED) {
+        if (status == PostStatus.ENABLED || status == PostStatus.FAILED) {
             saveStatusHistory(PostStatus.DISABLED, post);
         } else {
-            throw new InvalidPostException("Could not disable post. The actual status is: " + mostRecentHistory);
+            throw new InvalidPostException("Could not disable post. The actual status is: " + status);
         }
     }
 
