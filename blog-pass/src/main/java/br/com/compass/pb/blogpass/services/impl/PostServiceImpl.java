@@ -133,7 +133,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public Post populatePostById(Long postId) {
 
-        Post post = postClient.getPostById(postId);
+        PostDto postDto = postClient.getPostById(postId);
+        Post post = modelMapper.map(postDto, Post.class);
 
         saveStatusHistory(PostStatus.POST_FIND, post);
 
@@ -151,9 +152,9 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public Post populateCommentByPostId(Long postId) {
+    public PostDto populateCommentByPostId(Long postId) {
 
-        Post post = postRepository.findById(postId).get();
+        Post post = findExistentPostById(postId).get();
 
         saveStatusHistory(PostStatus.COMMENTS_FIND, post);
 
@@ -161,7 +162,8 @@ public class PostServiceImpl implements PostService {
 
         saveStatusHistory(PostStatus.ENABLED, post);
 
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        return modelMapper.map(savedPost, PostDto.class);
     }
 
 
@@ -203,12 +205,6 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-
-    @Override
-    public List<Post> returnAllPostsFromAPI() {
-        return postClient.getAllPosts();
-    }
-
     @Override
     public List<PostDto> getAllPostsFromBD() {
         List<Post> posts = postRepository.findAll();
@@ -217,7 +213,6 @@ public class PostServiceImpl implements PostService {
             throw new ResourceNotFoundException("No posts were found!");
         }
 
-        ModelMapper modelMapper = new ModelMapper();
         List<PostDto> responseDtoList = modelMapper.map(
                 posts, new TypeToken<List<PostDto>>() {}.getType());
 

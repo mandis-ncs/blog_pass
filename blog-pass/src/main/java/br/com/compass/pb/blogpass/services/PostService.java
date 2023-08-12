@@ -22,13 +22,11 @@ public interface PostService {
 
     Post populatePostById(Long postId);
 
-    Post populateCommentByPostId(Long postId);
+    PostDto populateCommentByPostId(Long postId);
 
     void reprocessPost(Long postId);
 
     void disablePost(Long postId);
-
-    List<Post> returnAllPostsFromAPI();
 
     List<PostDto> getAllPostsFromBD();
 }
