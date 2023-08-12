@@ -1,11 +1,11 @@
 package br.com.compass.pb.blogpass.entities;
 
+import br.com.compass.pb.blogpass.enums.PostStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Getter
 @Setter

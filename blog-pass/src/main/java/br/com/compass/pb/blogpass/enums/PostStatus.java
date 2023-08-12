@@ -1,4 +1,4 @@
-package br.com.compass.pb.blogpass.entities;
+package br.com.compass.pb.blogpass.enums;
 
 public enum PostStatus {
     CREATED,

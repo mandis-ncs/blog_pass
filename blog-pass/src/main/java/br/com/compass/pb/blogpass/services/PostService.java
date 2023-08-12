@@ -2,7 +2,7 @@ package br.com.compass.pb.blogpass.services;
 
 import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.entities.Post;
-import br.com.compass.pb.blogpass.entities.PostStatus;
+import br.com.compass.pb.blogpass.enums.PostStatus;
 import br.com.compass.pb.blogpass.entities.StatusHistory;
 
 import java.util.List;

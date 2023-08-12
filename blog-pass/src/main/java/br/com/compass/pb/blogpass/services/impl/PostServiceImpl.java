@@ -5,7 +5,7 @@ import br.com.compass.pb.blogpass.services.PostClient;
 import br.com.compass.pb.blogpass.dto.PostDto;
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
-import br.com.compass.pb.blogpass.entities.PostStatus;
+import br.com.compass.pb.blogpass.enums.PostStatus;
 import br.com.compass.pb.blogpass.entities.StatusHistory;
 import br.com.compass.pb.blogpass.exceptions.DuplicatedPostException;
 import br.com.compass.pb.blogpass.exceptions.InvalidPostException;
@@ -17,7 +17,6 @@ import br.com.compass.pb.blogpass.services.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
