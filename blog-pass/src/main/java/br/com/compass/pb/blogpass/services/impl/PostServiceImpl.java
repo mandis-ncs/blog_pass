@@ -1,5 +1,6 @@
 package br.com.compass.pb.blogpass.services.impl;
 
+import br.com.compass.pb.blogpass.dto.CommentDto;
 import br.com.compass.pb.blogpass.messaging.producers.MessageProducerPost;
 import br.com.compass.pb.blogpass.services.PostClient;
 import br.com.compass.pb.blogpass.dto.PostDto;
@@ -86,7 +87,7 @@ public class PostServiceImpl implements PostService {
 
     public void fetchAndSaveCommentsArray (Post post) {
         List<Comment> arrayComments = new ArrayList<>();
-        List<Comment> fetchedComments = postClient.getCommentsByPostId(post.getId());
+        List<CommentDto> fetchedComments = postClient.getCommentsByPostId(post.getId());
 
         if (fetchedComments.isEmpty()) {
             saveStatusHistory(PostStatus.FAILED, post);
@@ -94,7 +95,7 @@ public class PostServiceImpl implements PostService {
             throw new ResourceNotFoundException("Comments are empty. Status: FAILED. Disabling post.");
         }
 
-        for (Comment fetchedComment : fetchedComments) {
+        for (CommentDto fetchedComment : fetchedComments) {
             Comment comment = new Comment(fetchedComment.getBody(), post);
             comment.setId(fetchedComment.getId());
             arrayComments.add(comment);

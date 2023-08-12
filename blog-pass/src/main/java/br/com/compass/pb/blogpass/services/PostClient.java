@@ -1,5 +1,6 @@
 package br.com.compass.pb.blogpass.services;
 
+import br.com.compass.pb.blogpass.dto.CommentDto;
 import br.com.compass.pb.blogpass.entities.Comment;
 import br.com.compass.pb.blogpass.entities.Post;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -20,6 +21,6 @@ public interface PostClient {
     Post getPostById(@PathVariable("postId") Long postId);
 
     @GetMapping("/posts/{postId}/comments")
-    List<Comment> getCommentsByPostId(@PathVariable("postId") Long postId);
+    List<CommentDto> getCommentsByPostId(@PathVariable("postId") Long postId);
 
 }
