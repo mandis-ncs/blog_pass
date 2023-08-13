@@ -54,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
 
         UserModel newUser = createUserFromDto(registerDto, userRole);
 
+        String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
+        newUser.setPassword(encodedPassword);
+
         UserModel savedUser = userRepository.save(newUser);
 
         return mapUserToLoginDto(savedUser);
