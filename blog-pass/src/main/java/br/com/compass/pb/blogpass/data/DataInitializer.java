@@ -17,14 +17,17 @@ import java.util.Arrays;
 @Component
 public class DataInitializer {
 
-    @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
     private UserRepository userRepository;
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public DataInitializer(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @EventListener
     @Transactional

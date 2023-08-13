@@ -79,4 +79,15 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         return new ResponseEntity<ExceptionResponse>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(DuplicatedUsernameException.class)
+    public final ResponseEntity<ExceptionResponse> handlerDuplicatedUsernameException(Exception e, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(
+                LocalDateTime.now(),
+                e.getMessage(),
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<ExceptionResponse>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
 }

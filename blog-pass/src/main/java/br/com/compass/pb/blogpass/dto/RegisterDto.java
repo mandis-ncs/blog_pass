@@ -11,17 +11,14 @@ import lombok.Setter;
 @AllArgsConstructor
 
 public class RegisterDto {
-    private String name;
     private String username;
-    private String email;
     private String password;
 }
+
+
 /*
 {
-        "name" : "mandis",
         "username" :  "mandis",
-        "email" : "mandis@gmail.com",
         "password" : "mandis"
         }
-
  */
