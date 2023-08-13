@@ -15,6 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 
 @Entity
+@Table(name = "comments")
 public class Comment {
 
     @Id

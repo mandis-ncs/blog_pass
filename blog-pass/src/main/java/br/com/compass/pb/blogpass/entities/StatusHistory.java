@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @ToString
 
 @Entity
+@Table(name = "status_history")
 public class StatusHistory {
 
     @Id

@@ -1,10 +1,14 @@
 package br.com.compass.pb.blogpass.entities;
 
+import br.com.compass.pb.blogpass.enums.RoleName;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.io.Serializable;
 
 @Setter
 @Getter
@@ -12,11 +16,19 @@ import lombok.Setter;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "TB_ROLE")
+public class Role implements GrantedAuthority, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
+    private RoleName roleName;
+
+    @Override
+    public String getAuthority() {
+        return this.roleName.toString();
+    }
 }
