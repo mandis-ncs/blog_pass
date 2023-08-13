@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public LoginDto register(RegisterDto registerDto) {
+    public String register(RegisterDto registerDto) {
         String username = registerDto.getUsername();
         validateUsernameAvailability(username);
 
@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
 
         UserModel savedUser = userRepository.save(newUser);
 
-        return mapUserToLoginDto(savedUser);
+        return registerDto.getUsername();
     }
 
     private void validateUsernameAvailability(String username) {

@@ -5,7 +5,6 @@ import br.com.compass.pb.blogpass.dto.RegisterDto;
 import br.com.compass.pb.blogpass.services.AuthService;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,14 +22,14 @@ public class AuthController {
     @PostMapping(value = {"/login", "/signin"})
     public ResponseEntity<String> login(@RequestBody LoginDto loginDto){
         String response = authService.login(loginDto);
-        return ResponseEntity.ok("Successfully login with username: " + response);
+        return ResponseEntity.ok("Successfully logged in with username: " + response);
     }
 
     @PermitAll
     @PostMapping(value = {"/register", "/signup"})
-    public ResponseEntity<LoginDto> register(@RequestBody RegisterDto registerDto){
-        LoginDto userLoginInfo = authService.register(registerDto);
-        return ResponseEntity.ok(userLoginInfo);
+    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto){
+        String response = authService.register(registerDto);
+        return ResponseEntity.ok("Successfully registered new username: " + response);
     }
 
 }

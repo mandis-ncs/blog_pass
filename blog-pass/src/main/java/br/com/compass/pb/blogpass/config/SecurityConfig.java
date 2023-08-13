@@ -32,7 +32,6 @@ public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Buil
                             .requestMatchers(mvc.pattern("/h2-console/**")).permitAll()
                             .requestMatchers(mvc.pattern("/blog-pass/auth/**")).permitAll()
 //                            .requestMatchers(mvc.pattern("/posts")).permitAll()
-//                            .requestMatchers(HttpMethod.GET, mvc.pattern("/posts/**").hasRole()
                             .anyRequest().authenticated()
             );
     return http.build();

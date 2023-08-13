@@ -6,5 +6,5 @@ import br.com.compass.pb.blogpass.dto.RegisterDto;
 public interface AuthService {
     String login(LoginDto loginDto);
 
-    LoginDto register(RegisterDto registerDto);
+    String register(RegisterDto registerDto);
 }
