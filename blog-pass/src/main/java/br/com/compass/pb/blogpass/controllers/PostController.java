@@ -26,7 +26,7 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPostsFromBD());
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/{postId}")
     public ResponseEntity<String> processPost(@PathVariable Long postId) {
         postService.processPost(postId);
