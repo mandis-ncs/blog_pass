@@ -7,7 +7,6 @@ import br.com.compass.pb.blogpass.entities.Post;
 import br.com.compass.pb.blogpass.entities.Role;
 import br.com.compass.pb.blogpass.entities.UserModel;
 import br.com.compass.pb.blogpass.enums.RoleName;
-import br.com.compass.pb.blogpass.exceptions.DuplicatedPostException;
 import br.com.compass.pb.blogpass.exceptions.DuplicatedUsernameException;
 import br.com.compass.pb.blogpass.exceptions.UsernameNotFoundException;
 import br.com.compass.pb.blogpass.repositories.RoleRepository;
@@ -17,8 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -38,35 +36,47 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String login(LoginDto loginDto) {
-
         String username = loginDto.getUsername();
-        if (userRepository.findByUsername(username).isEmpty()) {
-            throw new UsernameNotFoundException("This username does not exists: " + username);
-        }
+
+        userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("This username does not exist: " + username));
+
         return username;
     }
 
+
     @Override
     public LoginDto register(RegisterDto registerDto) {
-
         String username = registerDto.getUsername();
+        validateUsernameAvailability(username);
+
+        Role userRole = getOrCreateUserRole();
+
+        UserModel newUser = createUserFromDto(registerDto, userRole);
+
+        UserModel savedUser = userRepository.save(newUser);
+
+        return mapUserToLoginDto(savedUser);
+    }
+
+    private void validateUsernameAvailability(String username) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new DuplicatedUsernameException("This username already exists: " + username);
         }
+    }
 
-        // role
-        Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
+    private Role getOrCreateUserRole() {
+        return roleRepository.findByRoleName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found."));
+    }
 
-        List<Role> roleList = new ArrayList<>();
-        roleList.add(userRole);
-
-        // new user
+    private UserModel createUserFromDto(RegisterDto registerDto, Role userRole) {
         UserModel newUser = modelMapper.map(registerDto, UserModel.class);
-        newUser.setRoles(roleList);
+        newUser.setRoles(Collections.singletonList(userRole));
+        return newUser;
+    }
 
-        UserModel savedUser = userRepository.save(newUser);
-        return modelMapper.map(savedUser, LoginDto.class);
-
+    private LoginDto mapUserToLoginDto(UserModel user) {
+        return modelMapper.map(user, LoginDto.class);
     }
 }
