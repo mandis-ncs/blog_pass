@@ -1,15 +1,15 @@
 # blog_pass
-BlogPass is a blog themed API that process new Posts data from an external resource and save the Progress Status for the UOL Compass Challenge 3.
+BlogPass is an API designed around a blog theme, which processes new post data from an external resource and tracks the Progress Status for the UOL Compass Challenge 3.
 
 
 ## ✅ What BlogPass do?
-This project is a RESTFUL API that handle Posts data doing the operations with HTTP verbs (GET, POST, PUT, DELETE) by consuming data with OpenFeign. Also, it apply a message brocker to receive many requests and process it accordly. While the Posts are being handle, the Progress Status is updated in history.
+BlogPass is a RESTful API that handles post data operations using HTTP verbs (GET, POST, PUT, DELETE) by consuming data with OpenFeign. Additionally, it employs a message broker to handle multiple requests and processes them accordingly. While managing the posts, the Progress Status is updated and recorded in the history. 
 
-As an extra, it has the function to register new users that can consume the content of BlogPass.
+As an added feature, it allows the registration of new users who can access the content provided by BlogPass.
 
 
 ### 🛠️ Technologies
-The following technologies were used in this project:
+The following technologies were utilized in this project:
 
 * [Java 17](https://www.oracle.com/br/java/)
 * [Spring Security](https://spring.io/projects/spring-security)
@@ -26,31 +26,32 @@ To test this project in your computer, you should have the following tools insta
 * An IDE (like IntelliJ or Eclipse) to run the Spring Java code
 * An software testing tools (like Postman or Insomnia)
   
-Next, you can clone this repository with the following command:
+Follow these steps:
 
+1. Clone this repository using the following command:
 ```bash
 git clone https://github.com/mandis-ncs/blog_pass.git
 ```
 
-Now, you can open the directory in your IDE and navigate until the main class called 'BlogPassApplication' and press the icon 'Run' to run the code!
-Next, you can open your testing API tools software  and try the HTTP operations.
+2. Open the cloned directory in your IDE and locate the main class called 'BlogPassApplication'. Click the 'Run' icon to execute the code.
+3. Open your testing API software and try out the HTTP operations.
 
 ## ✅ Testing HTTP: Step by step ##
-This are the commands you can try in your testing software. We recommend you use Postman and follow the steps in order.
+Here are the commands to use in your testing software (preferably Postman). Please follow these steps in order:
 
-(Obs: when doing the requests you have to login in Basic Auth as admin or as an user.)
+(Obs: For each request, log in using Basic Auth as either an admin or a user.)
 
 ### ✅ Handle Posts Data ###
 * BASIC AUTH
-First, when you open your testing software go to the Authorization tab and select the Type "Basic Auth", then put the admin credentials pre registered: 
+In your testing software, go to the Authorization tab and select the "Basic Auth" type. Use the pre-registered admin credentials:
 ```bash
 Username: admin
 Password: admin123
 ```
-Now you can proceed the HTTP operations.
+(Note: You have to put the credentials in every Endpoint, to identify yourself)
 
 * ✅ POST
-To process a new Post, you have to put an ID between 1 and 100 and replace where the {postId} symbol is:
+To process a new post, use an ID between 1 and 100 in place of {postId}:
 ```bash
 http://localhost:8080/posts/{postId}
 ```
@@ -58,73 +59,75 @@ As example:
 ```bash
 http://localhost:8080/posts/1
 ```
-This will set the Progress Status as ENABLE if succed or FAILED if something goes wrong.
+This will set the Progress Status to ENABLE if successful or FAILED if there's an issue.
 
 * ✅ GET ALL
-With this command, you can see all the Posts registred, the comments associated, and their Progress Status History.
+Retrieve all registered posts, associated comments, and their Progress Status History using:
 ```bash
 http://localhost:8080/posts
 ```
-(Note: You can try login with user credentials. See more below.)
+(Note: You can also log in with user credentials. More below.)
 
 
 * ✅ PUT
-With this command, the Post will be reprocessed.
+Reprocess a post using:
 ```bash
 http://localhost:8080/posts/{postId}
 ```
 
 * ✅ DELETE
-To delete an Post, you can use the same command as before. The difference, is that the Post Status will be setted as DISABLE.
+Delete a post using the same command as before. The post's status will be set to DISABLE.
 ```bash
 http://localhost:8080/posts/{postId}
 ```
-### 😃 Register your own User ###
-As said, you can register and login with your own credentials. Therefore, the application gives you a user by default:
+### 😃 Register Your Own User ###
+As mentioned, you can register and log in with your own credentials. By default, the application provides the following user:
 ```bash
 Username: user
 Password: user123
 ```
 
 * 😃 REGISTER USER
-Now, to register a new User, you can go to the testing software and choose a POST method with the URL:
+To register a new user, send a POST request to:
 ```bash
 http://localhost:8080/blog-pass/auth/register
 ```
 
-You have to provide a JSON body like the following format:
+You have to provide a JSON body in the following format:
 ```bash
 {
     "username" :  "newUser",
     "password" : "newUser123"
 }       
 ```
-Remenber that the User credentials can only access the GET ALL method to see the registered Posts. 
+Note that user credentials can only access the GET ALL method to view registered posts.
+
 (Obs: As is used a embedded database with drop-create configuration, the newUser created will be erased when the application stop to running.)
 
 * 😃 LOGIN
-You can go to the Authorization tab again and put your new credentials. But before this, you can test with your credentials are valid, by provinding the JSON body as above in the URL:
+In the Authorization tab, use your new credentials. You can also test whether your credentials are valid by sending a POST request with the JSON body mentioned above to:
 ```bash
 http://localhost:8080/blog-pass/auth/login
 ```
 
 ### ❌ Exceptions
-If you send a bad request or search by an ID that doesn't exist, we provide some advice to prevent errors. For example, if you try the following POST URI, the error message "The post id should be between 0 and 100." will appear.
+If you send a bad request or search by an ID that doesn't exist, it is provided some advice to prevent errors. For example, if you try the following POST URI, the error message "The post id should be between 0 and 100." will appear.
 
 ```bash
 http://localhost:8080/posts/10123
 ```
 
-### 💡 New Knowledges ###
-It was very interesting applying some new technologies I was not addapted to as:
-*  ActiveMQ Artemis embedded message brocker, so the queues to receive requests will be created automaticaly
-*  OpenFeign Client to consume data from an external resource
-*  Using ENUMS to save the Progress Status while processing a Post, that with the register of time possibility compare the velocity and capacity of my API
-*  Putting some basic security with Spring security
+### 💡 New Knowledge Gained ###
+It was fascinating to apply new technologies that I wasn't previously accustomed to, such as:
+
+* Using ActiveMQ Artemis embedded message broker to create queues automatically for receiving requests
+* Utilizing OpenFeign Client to consume data from an external resource
+* Employing ENUMS to save the Progress Status during post processing, allowing for time-based comparisons of my API's velocity and capacity
+* Implementing basic security measures with Spring Security
 
 ### 🧪 Tests
-It was applyed some simple tests with [JUnit](https://junit.org/junit5/) and [Mockito](https://site.mockito.org/) to test if Exceptions were throwed in error cases in the class 'Service'.
-* To run the Service class tests in your repository, you can go to the 'PostServiceImplTest' and press the button to run.
+Simple tests using [JUnit](https://junit.org/junit5/) and [Mockito](https://site.mockito.org/) were performed to ensure that exceptions are thrown in error cases in the 'Service' class.
+* To run these tests, navigate to the 'PostServiceImplTest' class in your repository and click the run button.
 
 (Note: the test is placed in "src/test")
 
@@ -136,6 +139,3 @@ To konw more about BlogPass API, you can access it by copying the following URL 
 ```
 
 (Note: You can only access it when the project is running)
-
-### ‎😃 Creators
-(insert here the nickname of each creator)
