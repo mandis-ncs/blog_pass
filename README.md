@@ -13,6 +13,7 @@ The following technologies were utilized in this project:
 
 * [Java 17](https://www.oracle.com/br/java/)
 * [Spring Security](https://spring.io/projects/spring-security)
+* [Mockito](https://site.mockito.org/)
 * [H2 Database](https://www.h2database.com/html/main.html)
 * [ActiveMQ Artemis](https://activemq.apache.org/components/artemis/)
 * [Git](https://git-scm.com/)
@@ -28,7 +29,7 @@ To test this project in your computer, you should have the following tools insta
   
 Follow these steps:
 
-1. Clone this repository using the following command:
+1. Clone this repository in Git Bash using the following command:
 ```bash
 git clone https://github.com/mandis-ncs/blog_pass.git
 ```
@@ -36,10 +37,18 @@ git clone https://github.com/mandis-ncs/blog_pass.git
 2. Open the cloned directory in your IDE and locate the main class called 'BlogPassApplication'. Click the 'Run' icon to execute the code.
 3. Open your testing API software and try out the HTTP operations.
 
+### ⚠️⚠️⚠️ Atention: ⚠️⚠️⚠️
+The clone will redirect you to the main branch, where basic security is enabled. If you want to test the version ⚠️WITHOUT SECURITY:
+1. In Git Bash copy and paste to switch to another branch:
+```bash
+git checkout -b without_security origin/without_security
+```
+2. Verify if the message "Switch to new branch [without_security](https://site.mockito.org/)" appears. You are done :)
+
 ## ✅ Testing HTTP: Step by step ##
 Here are the commands to use in your testing software (preferably Postman). Please follow these steps in order:
 
-(Obs: For each request, log in using Basic Auth as either an admin or a user.)
+(Obs: For each request, log in using Basic Auth as either an admin or an user, unless you have changed to whithout_security branch.)
 
 ### ✅ Handle Posts Data ###
 * BASIC AUTH ->
