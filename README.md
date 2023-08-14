@@ -42,7 +42,7 @@ Here are the commands to use in your testing software (preferably Postman). Plea
 (Obs: For each request, log in using Basic Auth as either an admin or a user.)
 
 ### ✅ Handle Posts Data ###
-* BASIC AUTH
+* BASIC AUTH ->
 In your testing software, go to the Authorization tab and select the "Basic Auth" type. Use the pre-registered admin credentials:
 ```bash
 Username: admin
@@ -50,7 +50,7 @@ Password: admin123
 ```
 (Note: You have to put the credentials in every Endpoint, to identify yourself)
 
-* ✅ POST
+* ✅ POST -> 
 To process a new post, use an ID between 1 and 100 in place of {postId}:
 ```bash
 http://localhost:8080/posts/{postId}
@@ -61,7 +61,7 @@ http://localhost:8080/posts/1
 ```
 This will set the Progress Status to ENABLE if successful or FAILED if there's an issue.
 
-* ✅ GET ALL
+* ✅ GET ALL -> 
 Retrieve all registered posts, associated comments, and their Progress Status History using:
 ```bash
 http://localhost:8080/posts
@@ -69,13 +69,13 @@ http://localhost:8080/posts
 (Note: You can also log in with user credentials. More below.)
 
 
-* ✅ PUT
+* ✅ PUT -> 
 Reprocess a post using:
 ```bash
 http://localhost:8080/posts/{postId}
 ```
 
-* ✅ DELETE
+* ✅ DELETE ->
 Delete a post using the same command as before. The post's status will be set to DISABLE.
 ```bash
 http://localhost:8080/posts/{postId}
@@ -87,7 +87,7 @@ Username: user
 Password: user123
 ```
 
-* 😃 REGISTER USER
+* 😃 REGISTER USER -> 
 To register a new user, send a POST request to:
 ```bash
 http://localhost:8080/blog-pass/auth/register
@@ -104,7 +104,7 @@ Note that user credentials can only access the GET ALL method to view registered
 
 (Obs: As is used a embedded database with drop-create configuration, the newUser created will be erased when the application stop to running.)
 
-* 😃 LOGIN
+* 😃 LOGIN -> 
 In the Authorization tab, use your new credentials. You can also test whether your credentials are valid by sending a POST request with the JSON body mentioned above to:
 ```bash
 http://localhost:8080/blog-pass/auth/login
