@@ -1,6 +1,8 @@
 # blog_pass
 BlogPass is an API designed around a blog theme, which processes new post data from an external resource and tracks the Progress Status for the UOL Compass Challenge 3.
 
+![image](https://github.com/mandis-ncs/blog_pass/assets/85968113/06286c5a-b4c2-44b0-97c3-381a8542dc06)
+
 
 ## ✅ What BlogPass do?
 BlogPass is a RESTful API that handles post data operations using HTTP verbs (GET, POST, PUT, DELETE) by consuming data with OpenFeign. Additionally, it employs a message broker to handle multiple requests and processes them accordingly. While managing the posts, the Progress Status is updated and recorded in the history. 
